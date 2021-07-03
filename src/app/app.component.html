@@ -11,14 +11,41 @@
     <div class="col-md-3 col-sm-3">{{account.account_type}}</div>
     <div class="col-md-3 col-sm-3">{{account.balance | currency: 'ZAR '}}</div>
     <div class="col-md-3 col-sm-3 display-flex-btn">
-      <!-- According to the assessment the button disable applied for only negative balances of savings account -->
-      <button class="btn btn-success" (click)="withdrawlAmount(account)" [disabled]="account.balance <= 0 && account.account_type == 'savings'">Withdrawl</button>
-      <!-- According to the screenshot in the assessment the button disable applied for negative balances of both credit and savings accounts -->
-      <!-- <button class="btn btn-success" (click)="withdrawlAmount(account)" [disabled]="account.balance <= 0"></button>Withdrawl</button> -->
+
+      <!-- According to the balance amount the button disable applied for only negative balances of account -->
+      <button [ngClass]=" (account.account_type=='savings' && account.balance <=0) || ((account.account_type=='cheque' ) &&
+        (account.balance <=-500)) ? 'btn btn-light' : 'btn btn-success'" [disabled]="(account.account_type == 'savings' && account.balance <= 0) || (account.account_type == 'cheque') && 
+        (account.balance <= -500)" data-toggle="modal" data-target=".bd-example-modal-sm"
+        (click)="calculateWithdrawl(account)">Withdrawl</button>
+
     </div>
   </div>
+  <hr>
   <div class="row display-flex-balance">
     <div class="col-md-6">Balance</div>
     <div class="col-md-6">{{totalBalance | currency: 'ZAR ' : 'symbol' : '4.2-2'}}</div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Withdrawl Amount</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Amount:
+        <input type="text" name="amount" #amount>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)=" withdrawlAmount(amount.value)">Save
+          changes</button>
+      </div>
+    </div>
   </div>
 </div>

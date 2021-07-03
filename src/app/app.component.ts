@@ -6,62 +6,74 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
   accounts: any = [];
   totalBalance: number = 0;
   maxLimit: number = 500;
+  amount: number = 0;
+  obj: object = {};
+  balanceAmount: number = 0;
 
-  constructor(private accountService:AccountsService) {}
+  constructor(private accountService: AccountsService) { }
 
   ngOnInit() {
+    // Fetching the data from API.
     this.accountService.getAccounts().subscribe(data => {
       this.accounts = data;
-      for(var i=0; i<this.accounts.length; i++) {
+      for (var i = 0; i < this.accounts.length; i++) {
         this.totalBalance += Number(this.accounts[i].balance);
       }
     })
   }
-  // Calling getAccounts service.
-  setAccounts = () => {
-    this.accountService.getAccounts().subscribe(data => this.accounts = data);
+
+  // Fetching the account details.
+  calculateWithdrawl = ($event: MouseEvent) => {
+    this.obj = $event as object;
+    this.balanceAmount = Number(this.obj["balance"]);
   }
-  
-      //Checking the calculations on withdrawl amount on button click.
-  withdrawlAmount = ($event: MouseEvent) => {
-    var obj = $event as object;
-    var balanceAmount = Number(obj["balance"]);
-    if(obj["account_type"]  == "savings") {
-      //checking the balance amount negative or positive in savings account and the calculating total balance amount after withdrawl.
-      if(balanceAmount <= 0) {
-        alert("No Balance to withdrawl");
+  // Performing withdrawl functionality.
+  withdrawlAmount(value: number) {
+    this.amount = value;
+    if (this.obj["account_type"] == "savings") {
+      // Checking the balance amount before withdrawl.
+      this.balanceAmount -= this.amount;
+      if (this.balanceAmount <= 0) {
+        alert("Not enough balance to withdrawl");
       }
       else {
-        this.totalBalance -= balanceAmount;
-        console.log(balanceAmount);
+        // Calculating total balance amount after withdrawl.
+        this.totalBalance -= this.amount;
+        // Updating accounts manually
+        for (var i = 0; i < this.accounts.length; i++) {
+          if (this.accounts[i].account_number == Number(this.obj["account_number"])) {
+            this.accounts[i].balance = this.balanceAmount;
+          }
+        }
         alert("Success!");
         //Here we call the service to update the data in the server.
       }
-      
-    } 
-    if(obj["account_type"]  == "cheque") {
+
+    }
+    if (this.obj["account_type"] == "cheque") {
       //checking the withdrawl overdraft limit.
-      if(balanceAmount > this.maxLimit || balanceAmount < -this.maxLimit) {
-        alert("Overdraft Max Limit allowed is R500.00");
-      }
-      else {
-        //checking the balance amount negative or positive in credit account and the calculating total balance amount after withdrawl.
-        if(balanceAmount <= 0) {
-          this.totalBalance += balanceAmount;
+      if (this.amount > 500) {
+          alert("Overdraft Max Limit allowed is R500.00");
         }
-        else {
-          this.totalBalance -= balanceAmount;
+      else {
+        // Calculating total balance amount after withdrawl.
+        this.totalBalance -= this.amount;
+        // Updating accounts manually
+        for (var i = 0; i < this.accounts.length; i++) {
+          if (this.accounts[i].account_number == Number(this.obj["account_number"])) {
+            this.accounts[i].balance = this.balanceAmount - this.amount;
+          }
         }
         alert("Success!");
         //Here we call the service to update the data in the server.
       }
     }
-    this.setAccounts();
+    
   }
 
-
 }
+
